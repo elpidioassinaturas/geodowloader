@@ -6,10 +6,15 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
 build/
 .eggs/
 *.whl
+
+# Build portavel
+dist_portable/
+dist/
+*.installed
+pkgs/
 
 # Virtual environments
 .venv/
