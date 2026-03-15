@@ -1,4 +1,16 @@
 
+## [0.1.014]  2026-03-15  srtm.py: troca NASA LP DAAC (URL quebrada) por CopDEM GLO-30 AWS S3 publico sem auth
+
+**Commit:** 6be40a2  |  **Estado:** development
+
+### Alterado
+- sources/srtm.py: substituido por Copernicus DEM GLO-30 via AWS S3 Open Data
+- Motivo: URL do NASA LP DAAC retornava 404 direto (sem redirect de auth)
+  indicando que a URL do SRTMGL1.003 no servidor esta desatualizada/migrada
+- CopDEM GLO-30: mesmo tile scheme 1x1deg, ~30m, derivado TanDEM-X (2010-2015)
+- Sem autenticacao requerida  bucket S3 publico copernicus-dem-30m.s3.amazonaws.com
+- Naming: Copernicus_DSM_COG_10_{NS}{lat}_00_{EW}{lon}_00_DEM.tif
+
 ## [0.1.013]  2026-03-15  SRTM: auth como tupla (padrao NASA), log de redirect history para diagnostico
 
 **Commit:** a020050
@@ -58,6 +70,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
