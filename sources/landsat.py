@@ -122,26 +122,30 @@ def search(params: dict) -> list[dict]:
         cloud = it.properties.get("eo:cloud_cover", None)
         date  = it.datetime.strftime("%Y-%m-%d") if it.datetime else start_date
 
-        # URL do visualizador LandsatLook — formato correto:
-        # .../collection02/level-2/standard/oli-tirs/{year}/{path}/{row}/{scene_id}
-        # Scene ID ex: LC08_L2SP_222076_20240531_20240611_02_T1_SR
-        #   -> path=222, row=076, year=2024
-        base_id = it.id.replace("_SR", "").replace("_ST", "").replace("_L1", "")
-        parts_id = base_id.split("_")  # ['LC08','L2SP','222076','20240531',...]
+        # Constrói URL do thumbnail e do viewer a partir do scene ID
+        # Padrão: .../collection02/level-2/standard/oli-tirs/{year}/{path}/{row}/{id}/
+        base_id  = it.id.replace("_SR", "").replace("_ST", "").replace("_L1", "")
+        parts_id = base_id.split("_")   # ['LC08','L2SP','222076','20240531',...]
         if len(parts_id) >= 4:
-            wrs      = parts_id[2]          # '222076'
-            path_s   = wrs[:3]              # '222'
-            row_s    = wrs[3:6]             # '076'
-            year_s   = parts_id[3][:4]      # '2024'
-            sensor   = "oli-tirs"           # L8/L9 é sempre OLI-TIRS
-            level    = "level-2" if "L2" in base_id else "level-1"
+            wrs    = parts_id[2]        # '222076'
+            path_s = wrs[:3]            # '222'
+            row_s  = wrs[3:6]           # '076'
+            year_s = parts_id[3][:4]    # '2024'
+            level  = "level-2" if "L2" in base_id else "level-1"
+            base_path = (
+                f"https://landsatlook.usgs.gov/data/collection02/"
+                f"{level}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
+            )
+            # Thumbnail JPEG direto (funciona se usuario logado no USGS no browser)
+            thumb = f"{base_path}/{base_id}_thumb_small.jpeg"
+            # Link do visualizador para abrir cena completa
             viewer_url = (
                 f"https://landsatlook.usgs.gov/stac-browser/collection02/"
-                f"{level}/standard/{sensor}/{year_s}/{path_s}/{row_s}/{base_id}"
+                f"{level}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
             )
         else:
+            thumb      = None
             viewer_url = f"https://landsatlook.usgs.gov/stac-browser/collection02/{base_id}"
-        thumb = viewer_url
 
         # URLs de download das bandas (HTTPS direto)
         all_urls = []
@@ -163,15 +167,16 @@ def search(params: dict) -> list[dict]:
         sat   = "9" if (it.id.startswith("LC09") or it.id.startswith("LE09")) else "8"
 
         items.append({
-            "name":      it.id,
-            "product":   f"Landsat {sat} C2-{level}",
-            "date":      date,
-            "cloud":     f"{cloud:.2f}%" if cloud is not None else "?",
-            "size_mb":   round(len(all_urls) * 120.0, 0),  # ~120 MB/banda
-            "url":       all_urls[0] if all_urls else "",
-            "all_urls":  all_urls,
-            "thumb":     thumb,
-            "bbox":      None,
+            "name":       base_id,
+            "product":    f"Landsat {sat} C2-{level}",
+            "date":       date,
+            "cloud":      f"{cloud:.2f}%" if cloud is not None else "?",
+            "size_mb":    round(len(all_urls) * 120.0, 0),
+            "url":        all_urls[0] if all_urls else "",
+            "all_urls":   all_urls,
+            "thumb":      thumb,
+            "viewer_url": viewer_url,
+            "bbox":       None,
         })
 
         if len(items) >= max_results:

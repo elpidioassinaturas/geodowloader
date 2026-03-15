@@ -904,11 +904,19 @@ function renderResults(results) {
       <td>${r.product || '—'}</td>
       <td>${(r.date||'').substring(0,10)}</td>
       <td>${r.size_mb != null ? r.size_mb + ' MB' : '—'}</td>
-      <td>${r.thumb
-        ? (r.thumb.includes('stac-browser') || r.thumb.includes('landsatlook.usgs.gov/explore')
-            ? `<a href="${r.thumb}" target="_blank" title="Ver no LandsatLook" style="font-size:1.4rem;text-decoration:none;">🔍</a>`
-            : `<img class="thumb-img" src="/api/proxy/thumb?url=${encodeURIComponent(r.thumb)}" loading="lazy"/>`)
-        : '—'}</td>
+      <td style="white-space:nowrap">${
+        r.thumb
+          ? `<img class="thumb-img" src="${r.thumb}" loading="lazy"
+               onerror="this.style.display='none'"
+               style="cursor:pointer" onclick="window.open('${r.viewer_url||r.thumb}','_blank')"
+               title="Clique para ver no LandsatLook"/>`
+          : ''
+      }${
+        r.viewer_url
+          ? `<a href="${r.viewer_url}" target="_blank" title="Ver no LandsatLook"
+               style="font-size:1.1rem;text-decoration:none;margin-left:4px">🔍</a>`
+          : '—'
+      }</td>
     `;
     tbody.appendChild(tr);
   });
