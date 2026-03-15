@@ -1,4 +1,15 @@
 
+## [0.1.032]  2026-03-15
+**Commit:** 6eafe8d  |  **Estado:** development
+### Corrigido
+- landsat.py: USGS M2M login foi descontinuado em fev/2025 (404 no endpoint)
+- Reescrito via USGS LandsatLook STAC API (pystac-client)  sem auth para busca
+- Coleção: landsat-c2l2-sr (L8+L9 Surface Reflectance, sem auth na busca)
+- Cloud cover filtrado via query STAC eo:cloud_cover
+- Thumbnails e metadados vindos do STAC
+- requirements.txt: adicionado pystac-client
+
+
 ## [0.1.031]  2026-03-15
 **Commit:** d51188f  |  **Estado:** development
 ### Corrigido
@@ -149,6 +160,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
