@@ -1,4 +1,13 @@
 
+## [0.1.016]  2026-03-15  srtm.py: product name corrigido para SRTM 30m nos resultados de busca
+
+**Commit:** c0433d5  |  **Estado:** development
+
+### Corrigido
+- sources/srtm.py: campo 'product' nos resultados alterado de 'CopDEM GLO-30'
+  para 'SRTM 30m' — resultados de busca agora mostram SRTM conforme esperado
+- sources/__init__.py: label 'srtm' revertido para 'SRTM 30m' (corrige duplicata na aba MDE)
+
 ## [0.1.015]  2026-03-15  label srtm -> CopDEM GLO-30, remove credencial requerida, update info text
 
 **Commit:** b101438  |  **Estado:** development
@@ -79,6 +88,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 

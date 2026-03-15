@@ -27,7 +27,7 @@ DATASET_LABELS = {
     "alos":      {"label": "ALOS/PALSAR",    "icon": "📡",  "credential": "earthdata"},
     "sentinel2": {"label": "Sentinel-2",     "icon": "🌿",  "credential": "copernicus"},
     "landsat":   {"label": "Landsat 8/9",    "icon": "🛰️", "credential": "earthdata"},
-    "srtm":      {"label": "CopDEM GLO-30",  "icon": "⛰️",  "credential": None},
+    "srtm":      {"label": "SRTM 30m",       "icon": "⛰️",  "credential": None},
     "copdem":    {"label": "Copernicus DEM", "icon": "🏔️",  "credential": "copernicus"},
     "era5":      {"label": "ERA5",           "icon": "🌧️", "credential": "cds"},
     "chirps":    {"label": "CHIRPS",         "icon": "🌧️", "credential": None},

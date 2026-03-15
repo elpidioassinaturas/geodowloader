@@ -69,8 +69,8 @@ def search(params: dict) -> list[dict]:
         url  = f"{_S3_BASE}/{name}/{name}.tif"
         items.append({
             "name":    name,
-            "product": "CopDEM GLO-30",
-            "date":    "2010-2015",
+            "product": "SRTM 30m",
+            "date":    "2000-02-11",
             "size_mb": 50.0,
             "url":     url,
             "tile":    name,
