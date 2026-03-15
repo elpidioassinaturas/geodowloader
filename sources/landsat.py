@@ -21,17 +21,14 @@ from pathlib import Path
 
 _STAC_URL = "https://landsatlook.usgs.gov/stac-server/"
 
-# Coleções STAC disponíveis
-_COLLECTIONS = {
-    "LANDSAT_9":    "landsat-c2l2-sr",
-    "LANDSAT_8":    "landsat-c2l2-sr",
-    "LANDSAT_9_ST": "landsat-c2l2-st",
-    "LANDSAT_8_ST": "landsat-c2l2-st",
-    "LANDSAT_9_L1": "landsat-c2l1",
-    "LANDSAT_8_L1": "landsat-c2l1",
+# Mapeamento correção → coleção STAC
+_CORRECTION_COLLECTION = {
+    "BOA":  "landsat-c2l2-sr",   # Bottom of Atmosphere (Surface Reflectance) — Level-2
+    "TOA":  "landsat-c2l1",      # Top of Atmosphere (Level-1) — sem correção atmosférica
+    "ST":   "landsat-c2l2-st",   # Surface Temperature — Level-2
 }
 
-# Bandas principais para download (Surface Reflectance)
+# Bandas por tipo de produto
 _SR_BANDS = ["coastal", "blue", "green", "red", "nir08", "swir16", "swir22", "qa_pixel"]
 _ST_BANDS = ["lwir11", "qa_pixel", "qa_radsat"]
 _L1_BANDS = ["coastal", "blue", "green", "red", "nir08", "swir16", "swir22", "panchromatic"]
@@ -60,12 +57,13 @@ def search(params: dict) -> list[dict]:
     Busca cenas Landsat via USGS LandsatLook STAC API.
 
     params esperados:
-        aoi_wkt      : str   (WKT polygon, obrigatorio)
-        product_type : str   (LANDSAT_8|LANDSAT_9|LANDSAT_8_ST|LANDSAT_9_ST|..._L1)
-        start_date   : str   (YYYY-MM-DD)
-        end_date     : str   (YYYY-MM-DD)
-        cloud_cover  : int   (0-100)
-        max_results  : int   (default 20)
+        aoi_wkt    : str   (WKT polygon, obrigatorio)
+        satellite  : str   (Landsat 8 | Landsat 9 | Landsat 8+9)
+        correction : str   (BOA | TOA | ST)
+        start_date : str   (YYYY-MM-DD)
+        end_date   : str   (YYYY-MM-DD)
+        cloud_cover: int   (0-100)
+        max_results: int   (default 20)
     """
     try:
         from pystac_client import Client
@@ -76,15 +74,21 @@ def search(params: dict) -> list[dict]:
     if not aoi:
         raise ValueError("AOI e obrigatorio para busca de cenas Landsat.")
 
-    mission     = params.get("product_type", "LANDSAT_9")
+    satellite   = params.get("satellite",  "Landsat 9")
+    correction  = params.get("correction", "BOA")
     start_date  = params.get("start_date", "2024-01-01")
     end_date    = params.get("end_date",   "2024-12-31")
     cloud_max   = int(params.get("cloud_cover", 30))
     max_results = int(params.get("max_results", 20))
 
-    collection = _COLLECTIONS.get(mission, "landsat-c2l2-sr")
-    platform   = _platform_filter(mission)
-    bbox       = _wkt_to_bbox(aoi)
+    # Mapeamento para coleção STAC
+    collection = _CORRECTION_COLLECTION.get(correction, "landsat-c2l2-sr")
+
+    # Prefixo do satélite para filtro pós-busca
+    platform_map = {"Landsat 8": "LC08", "Landsat 9": "LC09"}
+    platform = platform_map.get(satellite)   # None = sem filtro (8+9)
+
+    bbox = _wkt_to_bbox(aoi)
 
     client = Client.open(_STAC_URL)
 
@@ -179,13 +183,14 @@ def search(params: dict) -> list[dict]:
                 if href.startswith("https://"):
                     all_urls.append(href)
 
-        # Tamanho estimado
-        level = "L2-SR" if "sr" in collection else ("L2-ST" if "st" in collection else "L1")
-        sat   = "9" if (it.id.startswith("LC09") or it.id.startswith("LE09")) else "8"
+        # Label do produto
+        corr_label = {"BOA": "BOA (Sup. Reflectance)", "TOA": "TOA (Topo Atm.)", "ST": "Sup. Temperature"}
+        sat = "9" if (it.id.startswith("LC09") or it.id.startswith("LE09")) else "8"
+        product_label = f"Landsat {sat} — {corr_label.get(correction, correction)}"
 
         items.append({
             "name":       base_id,
-            "product":    f"Landsat {sat} C2-{level}",
+            "product":    product_label,
             "date":       date,
             "cloud":      f"{cloud:.2f}%" if cloud is not None else "?",
             "size_mb":    round(len(all_urls) * 120.0, 0),
