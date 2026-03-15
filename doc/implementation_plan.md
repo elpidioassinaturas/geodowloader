@@ -154,3 +154,52 @@ shapely
 4. Testar aba NISAR: preencher credenciais, clicar buscar
 5. Verificar que o painel de log SSE recebe mensagens em tempo real
 6. Verificar aba Sentinel: parâmetros específicos aparecem
+
+---
+
+## Coisas a Fazer
+
+> Atualizado em: 2026-03-15
+
+### 🔴 Alta Prioridade
+
+- [ ] **Versão portátil (PyInstaller)**
+  - [ ] Fase 1: Adaptar `app.py` com `BASE_DIR` dinâmico (modo .exe vs modo dev)
+  - [ ] Fase 2: Criar `geodownloader.spec` (PyInstaller `--onedir`)
+  - [ ] Fase 3: Criar `BUILD.bat` que gera o ZIP distribúivel
+  - [ ] Fase 4: Resolver dependências problemáticas (earthaccess, GDAL, fiona)
+  - [ ] Fase 5: Testar em VM limpa sem Python instalado
+  - [ ] Fase 6: Publicar release no GitHub com `.zip`
+  - *Detalhes completos em [`plano_versao_portatil.md`](plano_versao_portatil.md)*
+
+### 🟡 Média Prioridade — Datasets Pendentes
+
+- [ ] **Sentinel-1** — busca e download via Copernicus CDSE
+- [ ] **Sentinel-2** — busca e download via Copernicus CDSE (thumbnail público)
+- [ ] **Copernicus DEM** — download GLO-30/GLO-90 via AWS S3 (sem auth)
+- [ ] **ERA5** — busca e download via CDS API (`cdsapi`)
+- [ ] **CHIRPS** — download de precipitação via HTTP público (UCSB)
+
+### 🟡 Média Prioridade — Melhorias Landsat
+
+- [ ] Testar download real de cenas Landsat (auth USGS via earthaccess)
+- [ ] Thumbnail nativo (requer login USGS ERS no browser do usuário)
+- [ ] Suporte a Landsat 7 ETM+ (coleção `landsat-etm-c2-l2`)
+
+### 🟢 Baixa Prioridade — Melhorias Gerais
+
+- [ ] Ícone `.ico` para o executável portátil
+- [ ] Barra de progresso com % real do download (baseada em `Content-Length`)
+- [ ] Retomar download interrompido (verificar arquivos já existentes)
+- [ ] Coluna "Nuvens" visível na tabela de resultados (Landsat/Sentinel)
+- [ ] Filtro de data relativa (ex: "últimos 30 dias") nos parâmetros
+- [ ] Suporte a múltiplas AOIs salvas / histórico de AOIs
+
+### ✅ Concluído
+
+- [x] NISAR — busca e download via asf_search
+- [x] SRTM 30m — busca e download via earthaccess (NASA CMR)
+- [x] Landsat 8/9 — busca via USGS LandsatLook STAC, filtro BOA/TOA/ST
+- [x] Landsat — thumbnail (link visualizador 🔍) + cloud cover filter
+- [x] INICIAR.bat corrigido (pip install sempre, mata porta 5000)
+- [x] Proxy de thumbnail autenticado (`/api/proxy/thumb`)
