@@ -1,4 +1,17 @@
 
+## [0.1.017]  2026-03-15  srtm.py: migra para earthaccess (abordagem oficial NASA LP DAAC)  URL antiga desativada
+
+**Commit:** 6bcf593  |  **Estado:** development
+
+### Corrigido
+- sources/srtm.py: substituido URL hardcoded do LP DAAC (desativado pela NASA)
+  pela abordagem oficial usando earthaccess — busca via CMR para encontrar
+  a localizacao atual dos dados SRTMGL1 v003
+- earthaccess.search_data() descobre onde os dados estao (cloud/S3/DAAC)
+- earthaccess.download() baixa com auth Earthdata gerenciada automaticamente
+- Credenciais passadas via EARTHDATA_USERNAME/EARTHDATA_PASSWORD env vars
+- requirements.txt: adicionado earthaccess>=0.16
+
 ## [0.1.016]  2026-03-15  srtm.py: product name corrigido para SRTM 30m nos resultados de busca
 
 **Commit:** c0433d5  |  **Estado:** development
@@ -88,6 +101,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 

@@ -2,6 +2,7 @@
 flask
 pyyaml
 requests
+earthaccess
 
 # ── NISAR (ASF DAAC) ──────────────────────────────────────────────────────────
 asf_search

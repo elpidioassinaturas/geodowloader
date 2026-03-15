@@ -2,124 +2,139 @@
 """
 sources/srtm.py
 ===============
-Adapter DEM 30m — Copernicus DEM GLO-30 via AWS S3 (Open Data, sem autenticação).
+Adapter SRTM 30m — NASA Earthdata via earthaccess (abordagem oficial LP DAAC).
+Credencial: NASA Earthdata (username + password)
 
-O Copernicus DEM GLO-30 é derivado do TanDEM-X (DLR/ESA) com qualidade
-superior ao SRTM original. Tiles 1°x1°, resolução ~30m, cobertura global.
+Referência oficial:
+  https://github.com/nasa/LPDAAC-Data-Resources/blob/main/python/scripts/
+  daac_data_download_python/DAACDataDownload.py
 
-Fonte: AWS Open Data Registry
-  s3://copernicus-dem-30m/
-  https://copernicus-dem-30m.s3.amazonaws.com/
-
-Não requer autenticação — acesso público gratuito.
+Usa a biblioteca earthaccess que gerencia o login Earthdata automaticamente.
+Adicione ao requirements.txt: earthaccess
 """
 from __future__ import annotations
 import math
+import re
 from pathlib import Path
-import requests
-
-_S3_BASE = "https://copernicus-dem-30m.s3.amazonaws.com"
 
 
-def _tile_name(lat: int, lon: int) -> str:
-    """Gera nome do tile CopDEM GLO-30.
-    Exemplo: lat=-22, lon=-45  ->  Copernicus_DSM_COG_10_S22_00_W045_00_DEM
-    """
-    ns = "N" if lat >= 0 else "S"
-    ew = "E" if lon >= 0 else "W"
-    return f"Copernicus_DSM_COG_10_{ns}{abs(lat):02d}_00_{ew}{abs(lon):03d}_00_DEM"
-
-
-def _wkt_to_bbox(wkt: str) -> dict:
-    """Extrai bbox (W, E, S, N) de WKT POLYGON."""
-    import re
+def _wkt_to_bbox(wkt: str) -> tuple:
+    """Extrai (W, S, E, N) de WKT POLYGON."""
     nums = list(map(float, re.findall(r"[-\d.]+",
         wkt.replace("POLYGON", "").replace("(", "").replace(")", ""))))
     lons = nums[0::2]
     lats = nums[1::2]
-    return {"W": min(lons), "E": max(lons), "S": min(lats), "N": max(lats)}
-
-
-def _bbox_to_tiles(bbox: dict) -> list[tuple]:
-    """Gera lista de (lat, lon) dos tiles que cobrem o bbox."""
-    tiles = []
-    for lat in range(int(math.floor(bbox["S"])), int(math.ceil(bbox["N"]))):
-        for lon in range(int(math.floor(bbox["W"])), int(math.ceil(bbox["E"]))):
-            tiles.append((lat, lon))
-    return tiles
+    return (min(lons), min(lats), max(lons), max(lats))  # W, S, E, N
 
 
 def search(params: dict) -> list[dict]:
     """
-    Calcula tiles CopDEM GLO-30 para o AOI e retorna lista de produtos.
+    Busca tiles SRTMGL1 v003 no NASA Earthdata via earthaccess.
 
     params esperados:
-        aoi_wkt : str  (WKT polygon, obrigatório)
+        aoi_wkt    : str  (WKT polygon, obrigatorio)
+        resolution : str  ("SRTMGL1" = 30m, "SRTMGL3" = 90m)
     """
+    try:
+        import earthaccess
+    except ImportError:
+        raise RuntimeError(
+            "Pacote 'earthaccess' nao instalado.\n"
+            "Execute: pip install earthaccess"
+        )
+
     aoi = (params.get("aoi_wkt") or "").strip()
     if not aoi:
-        raise ValueError("AOI e obrigatorio para busca de tiles DEM. Selecione uma area no mapa.")
+        raise ValueError("AOI e obrigatorio para busca de tiles SRTM.")
 
-    bbox  = _wkt_to_bbox(aoi)
-    tiles = _bbox_to_tiles(bbox)
+    short_name = params.get("resolution", "SRTMGL1")
+    bbox = _wkt_to_bbox(aoi)  # (W, S, E, N)
+
+    results = earthaccess.search_data(
+        short_name=short_name,
+        version="003",
+        bounding_box=bbox,
+    )
 
     items = []
-    for lat, lon in tiles:
-        name = _tile_name(lat, lon)
-        url  = f"{_S3_BASE}/{name}/{name}.tif"
+    for r in results:
+        meta = r.get("umm", {})
+        name = r["meta"].get("native-id", str(r))
+
+        # Tamanho
+        sizes = [
+            f.get("Size", 0)
+            for f in meta.get("DataGranule", {}).get("ArchiveAndDistributionInformation", [])
+        ]
+        size_mb = round(sum(sizes), 1) if sizes else 25.0
+
+        # Data
+        td = meta.get("TemporalExtent", {}).get("RangeDateTime", {})
+        date = td.get("BeginningDateTime", "2000-02-11")[:10]
+
         items.append({
             "name":    name,
             "product": "SRTM 30m",
-            "date":    "2000-02-11",
-            "size_mb": 50.0,
-            "url":     url,
-            "tile":    name,
-            "lat":     lat,
-            "lon":     lon,
+            "date":    date,
+            "size_mb": size_mb,
+            "url":     None,          # earthaccess gerencia as URLs internamente
+            "_result": r,             # objeto earthaccess para uso no download
             "thumb":   None,
-            "bbox": {
-                "minLat": lat,   "maxLat": lat + 1,
-                "minLon": lon,   "maxLon": lon + 1,
-            },
+            "bbox":    None,
         })
     return items
 
 
 def download(products: list[dict], cfg: dict, log_fn=print) -> None:
     """
-    Baixa tiles Copernicus DEM GLO-30 do AWS S3 publico (sem autenticacao).
+    Baixa tiles SRTM usando earthaccess (abordagem oficial NASA LP DAAC).
 
-    products : lista de dicts com 'url', 'tile'
-    cfg      : dict com 'download.directory'
+    products : lista de dicts retornados por search(), com campo '_result'
+    cfg      : dict com 'earthdata' (username/password) e 'download.directory'
     """
+    try:
+        import earthaccess
+        import os
+    except ImportError:
+        raise RuntimeError("Pacote 'earthaccess' nao instalado. Execute: pip install earthaccess")
+
+    earthdata = cfg.get("earthdata", {})
+    user = earthdata.get("username", "")
+    pwd  = earthdata.get("password", "")
+
+    if not user or not pwd:
+        raise RuntimeError("Credenciais NASA Earthdata nao configuradas. Acesse Configuracoes.")
+
     out_dir = Path(cfg.get("download", {}).get("directory", "downloads/srtm"))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    session = requests.Session()
-    session.headers.update({"User-Agent": "GeoDownloader/0.1.014"})
+    # earthaccess suporta login via variaveis de ambiente
+    os.environ["EARTHDATA_USERNAME"] = user
+    os.environ["EARTHDATA_PASSWORD"] = pwd
 
-    log_fn(f"Iniciando download de {len(products)} tile(s) Copernicus DEM GLO-30...")
-    log_fn(f"  Fonte: AWS S3 Open Data (sem autenticacao requerida)")
+    log_fn("Autenticando via NASA Earthdata (earthaccess)...")
+    try:
+        earthaccess.login(strategy="environment")
+        log_fn(f"  Autenticado como: {user}")
+    except Exception as e:
+        raise RuntimeError(f"Falha no login Earthdata: {e}")
 
-    for i, prod in enumerate(products, 1):
-        tile = prod.get("tile", prod.get("name", f"tile_{i}"))
-        url  = prod.get("url", "")
-        log_fn(f"[{i}/{len(products)}] Baixando: {tile}")
-        log_fn(f"  URL: {url}")
+    # Recupera objetos earthaccess dos produtos selecionados
+    ea_results = [p["_result"] for p in products if "_result" in p]
 
-        try:
-            out_path = out_dir / f"{tile}.tif"
-            with session.get(url, stream=True, timeout=120) as r:
-                if r.status_code == 404:
-                    log_fn(f"  ⚠ Tile nao disponivel (oceano ou area sem dados): {tile}")
-                    continue
-                r.raise_for_status()
-                total = 0
-                with open(out_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            f.write(chunk)
-                            total += len(chunk)
-            log_fn(f"  ✓ Concluido: {tile}.tif ({round(total/1e6, 1)} MB)")
-        except Exception as e:
-            log_fn(f"  ✗ Erro em {tile}: {e}")
+    if not ea_results:
+        raise RuntimeError(
+            "Produtos nao contem referencia earthaccess.\n"
+            "Refaca a busca antes de baixar."
+        )
+
+    log_fn(f"Iniciando download de {len(ea_results)} tile(s) SRTM...")
+
+    try:
+        downloaded = earthaccess.download(ea_results, str(out_dir))
+        for f in downloaded:
+            size_mb = round(Path(f).stat().st_size / 1e6, 1) if Path(f).exists() else 0
+            log_fn(f"  ✓ {Path(f).name} ({size_mb} MB)")
+    except Exception as e:
+        log_fn(f"  ✗ Erro no download: {e}")
+        raise
