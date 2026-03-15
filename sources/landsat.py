@@ -123,25 +123,42 @@ def search(params: dict) -> list[dict]:
         date  = it.datetime.strftime("%Y-%m-%d") if it.datetime else start_date
 
         # Constrói URL do thumbnail e do viewer a partir do scene ID
-        # Padrão: .../collection02/level-2/standard/oli-tirs/{year}/{path}/{row}/{id}/
+        # Formatos possíveis:
+        #   LC08_L2SP_222076_20240531_... → wrs em parts[2]
+        #   LC09TP_219075_20241126_...    → wrs em parts[1]
         base_id  = it.id.replace("_SR", "").replace("_ST", "").replace("_L1", "")
-        parts_id = base_id.split("_")   # ['LC08','L2SP','222076','20240531',...]
-        if len(parts_id) >= 4:
-            wrs    = parts_id[2]        # '222076'
-            path_s = wrs[:3]            # '222'
-            row_s  = wrs[3:6]           # '076'
-            year_s = parts_id[3][:4]    # '2024'
-            level  = "level-2" if "L2" in base_id else "level-1"
+        parts_id = base_id.split("_")
+
+        # Detecta índice do WRS (campo com 6 dígitos numéricos)
+        wrs_idx = next(
+            (i for i, p in enumerate(parts_id) if p.isdigit() and len(p) == 6),
+            None
+        )
+
+        # level vem da coleção STAC (mais confiável que tentar ler do ID)
+        if "l2" in collection or "sr" in collection or "st" in collection:
+            level_path = "level-2"
+        else:
+            level_path = "level-1"
+
+        if wrs_idx is not None and len(parts_id) > wrs_idx + 1:
+            wrs    = parts_id[wrs_idx]
+            path_s = wrs[:3]
+            row_s  = wrs[3:6]
+            # Data de aquisição vem do próximo campo (8 dígitos)
+            date_field = next(
+                (p for p in parts_id[wrs_idx+1:] if p.isdigit() and len(p) == 8),
+                None
+            )
+            year_s = date_field[:4] if date_field else "2024"
             base_path = (
                 f"https://landsatlook.usgs.gov/data/collection02/"
-                f"{level}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
+                f"{level_path}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
             )
-            # Thumbnail JPEG direto (funciona se usuario logado no USGS no browser)
-            thumb = f"{base_path}/{base_id}_thumb_small.jpeg"
-            # Link do visualizador para abrir cena completa
+            thumb      = f"{base_path}/{base_id}_thumb_small.jpeg"
             viewer_url = (
                 f"https://landsatlook.usgs.gov/stac-browser/collection02/"
-                f"{level}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
+                f"{level_path}/standard/oli-tirs/{year_s}/{path_s}/{row_s}/{base_id}"
             )
         else:
             thumb      = None
