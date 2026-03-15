@@ -666,11 +666,12 @@ const PARAMS = {
     { id:'max_results',  label:'Máx. resultados', type:'number', def:50 },
   ],
   landsat: [
-    { id:'product_type', label:'Missão',         type:'select', opts:['LANDSAT_8','LANDSAT_9'], def:'LANDSAT_9' },
-    { id:'start_date',   label:'Data início',    type:'date',   def:'2024-01-01' },
-    { id:'end_date',     label:'Data fim',        type:'date',   def:'2024-12-31' },
-    { id:'cloud_cover',  label:'Nuvens máx. (%)', type:'number', def:30 },
-    { id:'max_results',  label:'Máx. resultados', type:'number', def:50 },
+    { id:'product_type', label:'Missão / Nível', type:'select',
+      opts:['LANDSAT_9','LANDSAT_8','LANDSAT_9_L1','LANDSAT_8_L1'], def:'LANDSAT_9' },
+    { id:'start_date',   label:'Data início',     type:'date',   def:'2024-01-01' },
+    { id:'end_date',     label:'Data fim',         type:'date',   def:'2024-12-31' },
+    { id:'cloud_cover',  label:'Nuvens máx. (%)',  type:'number', def:30 },
+    { id:'max_results',  label:'Máx. resultados',  type:'number', def:20 },
   ],
   srtm: [
     { id:'info', label:'', type:'info', text:'Copernicus DEM GLO-30 (equivalente ao SRTM, qualidade superior). Tiles 1°x1° calculados automaticamente a partir da AOI — sem autenticação requerida.' },

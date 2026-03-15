@@ -1,4 +1,17 @@
 
+## [0.1.029]  2026-03-15  Landsat 8/9: novo adapter via earthaccess (Collection 2 Level-2, cloud cover, thumbnail)
+
+**Commit:** 2eeaa90  |  **Estado:** development
+
+### Adicionado (novo dataset)
+- sources/landsat.py: adapter Landsat 8/9 via earthaccess
+  - Busca Collection 2 Level-2 (reflectância de superfície) via CMR
+  - Filtros: data inicio/fim, cloud cover, max resultados
+  - Missoes: LANDSAT_8, LANDSAT_9, LANDSAT_8_L1, LANDSAT_9_L1
+  - Download agrupa arquivos por cena em subpasta
+  - Extrai thumbnail e percentual de nuvens dos metadados CMR
+- templates/index.html: parametros Landsat atualizados (L1/L2, max 20)
+
 ## [0.1.019]  2026-03-15  SRTM funcionando
 
 **Commit:** 2d0dc70  |  **Estado:** development
@@ -121,6 +134,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
