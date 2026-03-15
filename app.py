@@ -22,6 +22,11 @@ def _get_base_dir() -> Path:
 
 BASE_DIR = _get_base_dir()
 
+# Garante que BASE_DIR está no sys.path (Python Embeddable NÃO adiciona
+# o diretório do script automaticamente — diferente do Python normal)
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 # Injeta pkgs/ (modo portátil com Python Embeddable)
 _pkgs = BASE_DIR / "pkgs"
 if _pkgs.exists() and str(_pkgs) not in sys.path:
