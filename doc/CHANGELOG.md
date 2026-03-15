@@ -1,4 +1,14 @@
 
+## [0.1.046]  2026-03-15  Versao Portatil validada
+**Commit:** caf9509
+### Validado
+- GeoDownloader.bat: launcher sem erro 'foi inesperado' (setlocal enabledelayedexpansion + goto)
+- INSTALAR.bat: descompacta ZIP, restaura config.yaml, cria atalho Desktop
+- app.py: BASE_DIR dinamico + pkgs/ e BASE_DIR injetados no sys.path (fix Python Embeddable)
+- BUILD_PORTABLE.bat: gera ZIP + copia INSTALAR.bat para dist/
+- Fluxo completo: usuario baixa ZIP + INSTALAR.bat, instala em C:\geodownloader, funciona sem Python instalado
+
+
 ## [0.1.038]  2026-03-15  Landsat validado
 **Commit:** a3d8d11  |  **Estado:** development
 ### Validado
@@ -176,6 +186,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
