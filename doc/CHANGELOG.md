@@ -1,4 +1,11 @@
 
+## [0.1.033]  2026-03-15
+**Commit:** 983537f
+### Corrigido
+- app.py: endpoint /api/proxy/thumb  busca thumbnail com auth Earthdata e repassa ao browser
+- index.html: thumbnails usam proxy em vez de URL direta (evita 401 USGS)
+
+
 ## [0.1.032]  2026-03-15
 **Commit:** 6eafe8d  |  **Estado:** development
 ### Corrigido
@@ -160,6 +167,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 

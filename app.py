@@ -211,6 +211,40 @@ def api_stream():
 def api_status():
     return jsonify(DOWNLOAD_STATUS)
 
+# ── Routes — Proxy de thumbnails autenticados ──────────────────────────────────
+@app.route("/api/proxy/thumb")
+def api_proxy_thumb():
+    """
+    Proxy para thumbnails que requerem autenticação (ex: USGS LandsatLook).
+    Uso: /api/proxy/thumb?url=https://landsatlook.usgs.gov/.../thumb.jpeg
+    """
+    import requests as _req
+    url = request.args.get("url", "")
+    if not url or not url.startswith("https://"):
+        return Response(status=400)
+
+    cfg = load_config()
+    ed  = cfg.get("earthdata", {})
+    user = ed.get("username", "")
+    pwd  = ed.get("password", "")
+
+    try:
+        headers = {"User-Agent": "GeoDownloader/1.0"}
+        if user and pwd:
+            resp = _req.get(url, auth=(user, pwd), timeout=15,
+                            allow_redirects=True, headers=headers)
+        else:
+            resp = _req.get(url, timeout=15, allow_redirects=True, headers=headers)
+
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+        if resp.status_code != 200 or "text/html" in content_type:
+            return Response(status=404)
+
+        return Response(resp.content, content_type=content_type,
+                        headers={"Cache-Control": "public, max-age=3600"})
+    except Exception:
+        return Response(status=502)
+
 # ── Routes — Arquivos baixados ─────────────────────────────────────────────────
 @app.route("/api/files")
 def api_files():

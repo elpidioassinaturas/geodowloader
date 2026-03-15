@@ -904,7 +904,7 @@ function renderResults(results) {
       <td>${r.product || '—'}</td>
       <td>${(r.date||'').substring(0,10)}</td>
       <td>${r.size_mb != null ? r.size_mb + ' MB' : '—'}</td>
-      <td>${r.thumb ? `<img class="thumb-img" src="${r.thumb}" loading="lazy"/>` : '—'}</td>
+      <td>${r.thumb ? `<img class="thumb-img" src="/api/proxy/thumb?url=${encodeURIComponent(r.thumb)}" loading="lazy"/>` : '—'}</td>
     `;
     tbody.appendChild(tr);
   });
