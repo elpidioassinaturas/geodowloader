@@ -10,7 +10,7 @@ Cada módulo expõe:
 Categorias e datasets disponíveis:
     Radar  : nisar, sentinel1, alos
     Optico : sentinel2, landsat
-    MDE    : srtm, copdem
+    MDE    : srtm (CopDEM GLO-30 via AWS S3), copdem
     Clima  : era5, chirps
 """
 
@@ -27,8 +27,8 @@ DATASET_LABELS = {
     "alos":      {"label": "ALOS/PALSAR",    "icon": "📡",  "credential": "earthdata"},
     "sentinel2": {"label": "Sentinel-2",     "icon": "🌿",  "credential": "copernicus"},
     "landsat":   {"label": "Landsat 8/9",    "icon": "🛰️", "credential": "earthdata"},
-    "srtm":      {"label": "SRTM 30m",       "icon": "⛰️",  "credential": "earthdata"},
-    "copdem":    {"label": "Copernicus DEM", "icon": "⛰️",  "credential": "copernicus"},
+    "srtm":      {"label": "CopDEM GLO-30",  "icon": "⛰️",  "credential": None},
+    "copdem":    {"label": "Copernicus DEM", "icon": "🏔️",  "credential": "copernicus"},
     "era5":      {"label": "ERA5",           "icon": "🌧️", "credential": "cds"},
     "chirps":    {"label": "CHIRPS",         "icon": "🌧️", "credential": None},
 }

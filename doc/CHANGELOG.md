@@ -1,4 +1,13 @@
 
+## [0.1.015]  2026-03-15  label srtm -> CopDEM GLO-30, remove credencial requerida, update info text
+
+**Commit:** b101438  |  **Estado:** development
+
+### Corrigido
+- sources/__init__.py: label 'srtm' alterado de 'SRTM 30m' para 'CopDEM GLO-30'
+- sources/__init__.py: credencial requerida removida (AWS S3 e publico)
+- templates/index.html: info text atualizado para explicar uso do CopDEM
+
 ## [0.1.014]  2026-03-15  srtm.py: troca NASA LP DAAC (URL quebrada) por CopDEM GLO-30 AWS S3 publico sem auth
 
 **Commit:** 6be40a2  |  **Estado:** development
@@ -70,6 +79,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
