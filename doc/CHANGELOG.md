@@ -1,4 +1,15 @@
 
+## [0.1.013]  2026-03-15  SRTM: auth como tupla (padrao NASA), log de redirect history para diagnostico
+
+**Commit:** a020050
+**Estado:** development
+
+### Corrigido
+- EarthdataSession: implementação agora usa padrão oficial NASA Wiki
+  (mantém Authorization apenas para redirects to/from urs.earthdata.nasa.gov)
+- session.auth definido como TUPLA (user, pwd) em vez de HTTPBasicAuth
+- Adicionado log completo do histórico de redirects para diagnóstico
+
 ## [0.1.012]  2026-03-15  Corrige autenticacao SRTM: EarthdataSession repassa credenciais no redirect OAuth NASA
 
 **Commit:** c1c8c94
@@ -47,5 +58,6 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
