@@ -104,10 +104,17 @@ if exist "%BASE%dist\%ZIP_NAME%" del "%BASE%dist\%ZIP_NAME%"
 if not exist "%BASE%dist" mkdir "%BASE%dist"
 powershell -Command "Compress-Archive -Path '%DIST%\*' -DestinationPath '%BASE%dist\%ZIP_NAME%' -Force"
 
+:: Copia INSTALAR.bat para dist\ (vai junto com o ZIP para distribuicao)
+copy "%BASE%INSTALAR.bat" "%BASE%dist\INSTALAR.bat" >nul
+
 echo.
 echo ==================================================
 echo   Build concluido!
-echo   Arquivo: dist\%ZIP_NAME%
-for %%F in ("%BASE%dist\%ZIP_NAME%") do echo   Tamanho: %%~zF bytes
+echo.
+echo   Distribuir estes 2 arquivos da pasta dist\:
+echo     - %ZIP_NAME%
+echo     - INSTALAR.bat
+echo.
+for %%F in ("%BASE%dist\%ZIP_NAME%") do echo   Tamanho ZIP: %%~zF bytes
 echo ==================================================
 pause
