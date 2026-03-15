@@ -1,4 +1,18 @@
 
+## [0.1.012]  2026-03-15  Corrige autenticacao SRTM: EarthdataSession repassa credenciais no redirect OAuth NASA
+
+**Commit:** c1c8c94
+**Estado:** development
+
+### Corrigido
+- sources/srtm.py: substituído HTTPBasicAuth simples por EarthdataSession que
+  sobrescreve rebuild_auth para repassar credenciais no redirect OAuth da NASA
+  (urs.earthdata.nasa.gov). Antes o redirect retornava 404 pois as credenciais
+  não eram enviadas ao URL de destino.
+- Detecta resposta HTML (página de login) em vez do arquivo .zip
+- Adiciona verificação de credenciais vazias antes do download
+- Melhora mensagens de diagnóstico (status 401/403, URL redirecionada)
+
 ## [0.1.011] — 2026-03-15 — Estrutura inicial do GeoDownloader: app.py, geodata.py, 6 adapters (nisar/sentinel1/sentinel2/srtm/era5/chirps), templates/index.html UI completa
 
 **Commit:** 84735d2
@@ -33,4 +47,5 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 

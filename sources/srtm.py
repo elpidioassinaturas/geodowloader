@@ -7,12 +7,32 @@ Credencial: NASA Earthdata (username + password)
 
 Tiles: SRTMGL1 (1 arc-second = ~30m)
 URL base: https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/
+
+NOTA DE AUTENTICAÇÃO:
+  A NASA Earthdata usa redirect OAuth para urs.earthdata.nasa.gov.
+  O HTTPBasicAuth simples não repassa credenciais no redirect.
+  EarthdataSession sobrescreve rebuild_auth para lidar com isso.
 """
 from __future__ import annotations
 import math
 from pathlib import Path
 import requests
 from requests.auth import HTTPBasicAuth
+
+
+# ── Session com suporte ao redirect OAuth da NASA ─────────────────────────────
+class EarthdataSession(requests.Session):
+    """Session que repassa credenciais ao redirecionar para urs.earthdata.nasa.gov."""
+
+    def rebuild_auth(self, prepared_request, response):
+        """Mantém auth nos redirects dentro do domínio NASA."""
+        hostname = prepared_request.url.split("//")[-1].split("/")[0].lower()
+        if "earthdata.nasa.gov" in hostname or "e4ftl01.cr.usgs.gov" in hostname:
+            prepared_request.prepare_auth(self.auth, prepared_request.url)
+        else:
+            # Remove auth para domínios externos (segurança)
+            prepared_request.headers.pop("Authorization", None)
+
 
 _BASE_URL = "https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11"
 
@@ -69,7 +89,7 @@ def search(params: dict) -> list[dict]:
 
 def download(products: list[dict], cfg: dict, log_fn=print) -> None:
     """
-    Baixa tiles SRTM via Earthdata.
+    Baixa tiles SRTM via Earthdata com suporte ao redirect OAuth da NASA.
 
     products : lista de dicts com 'url', 'tile'
     cfg      : dict com 'earthdata' (username/password) e 'download.directory'
@@ -78,28 +98,47 @@ def download(products: list[dict], cfg: dict, log_fn=print) -> None:
     user = earthdata.get("username", "")
     pwd  = earthdata.get("password", "")
 
+    if not user or not pwd:
+        raise RuntimeError("Credenciais NASA Earthdata não configuradas. Acesse ⚙️ Configurações.")
+
     out_dir = Path(cfg.get("download", {}).get("directory", "downloads/srtm"))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    session = requests.Session()
+    # Usa EarthdataSession que repassa as credenciais no redirect OAuth
+    session = EarthdataSession()
     session.auth = HTTPBasicAuth(user, pwd)
-    session.headers.update({"User-Agent": "GeoDownloader/0.1.001"})
+    session.headers.update({"User-Agent": "GeoDownloader/0.1.011"})
 
     log_fn(f"Iniciando download de {len(products)} tile(s) SRTM...")
+    log_fn(f"  Usuário Earthdata: {user}")
+
     for i, prod in enumerate(products, 1):
         tile = prod.get("tile", prod.get("name", f"tile_{i}"))
         url  = prod.get("url", "")
         log_fn(f"[{i}/{len(products)}] Baixando tile: {tile}")
         try:
             out_path = out_dir / tile
-            with session.get(url, stream=True, timeout=60, allow_redirects=True) as r:
+            with session.get(url, stream=True, timeout=120, allow_redirects=True) as r:
                 if r.status_code == 404:
-                    log_fn(f"  ⚠ Tile não existe (oceano ou sem dados): {tile}")
+                    log_fn(f"  ⚠ Tile não existe no servidor (oceano ou sem cobertura): {tile}")
                     continue
+                if r.status_code in (401, 403):
+                    log_fn(f"  ✗ Erro de autenticação ({r.status_code}) — verifique suas credenciais NASA Earthdata")
+                    log_fn(f"    URL redirecionada: {r.url}")
+                    break
+                # Detecta se recebeu HTML da página de login em vez do arquivo
+                content_type = r.headers.get("Content-Type", "")
+                if "text/html" in content_type:
+                    log_fn(f"  ✗ Recebeu página HTML em vez do arquivo — autenticação falhou")
+                    log_fn(f"    URL: {r.url}")
+                    log_fn(f"    Verifique usuário/senha em ⚙️ Configurações")
+                    break
                 r.raise_for_status()
                 with open(out_path, "wb") as f:
                     for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        f.write(chunk)
-            log_fn(f"  ✓ Concluído: {tile}")
+                        if chunk:
+                            f.write(chunk)
+            log_fn(f"  ✓ Concluído: {tile} → {out_path}")
         except Exception as e:
             log_fn(f"  ✗ Erro em {tile}: {e}")
+
