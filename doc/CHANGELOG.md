@@ -1,4 +1,12 @@
 
+## [0.1.030]  2026-03-15
+**Commit:** 4b01ed9  |  **Estado:** development
+### Corrigido
+- cloud_cover removido do CMR (nem sempre suportado); filtro manual aplicado pós-busca
+- Erro explicativo se CMR retornar 0 resultados (AOI ou período incorreto)
+- Captura CLOUD_COVER e CLOUD_COVER_LAND dos metadados
+
+
 ## [0.1.029]  2026-03-15  Landsat 8/9: novo adapter via earthaccess (Collection 2 Level-2, cloud cover, thumbnail)
 
 **Commit:** 2eeaa90  |  **Estado:** development
@@ -134,6 +142,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 

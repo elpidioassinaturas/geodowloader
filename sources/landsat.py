@@ -97,17 +97,23 @@ def search(params: dict) -> list[dict]:
 
     ea = _login(user, pwd)
 
-    # Busca via CMR
-    results = ea.search_data(
+    # Monta kwargs de busca — cloud_cover via CMR nem sempre funciona para Landsat C2L2
+    search_kwargs = dict(
         short_name   = mission_cfg["short_name"],
-        version      = mission_cfg["version"],
         bounding_box = bbox,
         temporal     = (start_date, end_date),
-        cloud_cover  = (0, cloud_max),
-        count        = max_results,
+        count        = max_results * 3,   # solicita mais para compensar filtro manual
     )
 
+    # Nota: version pode ser omitida para pegar a mais recente disponível
+    # Inclui apenas se não restringir demais
+    # search_kwargs["version"] = mission_cfg["version"]
+
+    results = ea.search_data(**search_kwargs)
+
     items = []
+    total_cmr = len(results)
+
     for r in results:
         # URLs HTTPS reais — sobrevivem serialização JSON
         urls = r.data_links(access="indirect") or r.data_links()
@@ -129,37 +135,59 @@ def search(params: dict) -> list[dict]:
         td   = meta.get("TemporalExtent", {}).get("RangeDateTime", {})
         date = td.get("BeginningDateTime", start_date)[:10]
 
-        # Cobertura de nuvens
+        # Cobertura de nuvens — filtro manual (mais confiável que o CMR)
         adds = meta.get("AdditionalAttributes", [])
-        cloud = next(
+        cloud_raw = next(
             (a.get("Values", [None])[0]
-             for a in adds if a.get("Name") == "CLOUD_COVER"),
+             for a in adds if a.get("Name") in ("CLOUD_COVER", "CLOUD_COVER_LAND")),
             None,
         )
-        cloud_pct = f"{float(cloud):.1f}%" if cloud is not None else "?"
+        cloud_val = float(cloud_raw) if cloud_raw is not None else None
+
+        # Aplica filtro manual de nuvens
+        if cloud_val is not None and cloud_val > cloud_max:
+            continue
+
+        cloud_pct = f"{cloud_val:.1f}%" if cloud_val is not None else "?"
 
         # Thumbnail
         browse = meta.get("RelatedUrls", [])
         thumb  = next(
-            (b.get("URL") for b in browse if b.get("Type") == "GET RELATED VISUALIZATION"),
+            (b.get("URL") for b in browse
+             if b.get("Type") in ("GET RELATED VISUALIZATION", "GET BROWSE VISUALIZATION")),
             None,
         )
 
-        # Uma entrada por URL (cada cena tem vários arquivos — bandas)
-        # Agrupa todas as URLs como uma cena única, usando a primeira URL como referência
+        # Produto label
+        level = "L1" if "L1" in mission else "L2"
+        sat   = mission.split("_")[1]
+        product_label = f"Landsat {sat} C2-{level}"
+
         items.append({
             "name":      name,
-            "product":   f"Landsat {mission.split('_')[1]} C2-L2",
+            "product":   product_label,
             "date":      date,
             "cloud":     cloud_pct,
             "size_mb":   size_mb,
-            "url":       urls[0],          # URL principal (index)
-            "all_urls":  urls,             # todas as URLs das bandas
+            "url":       urls[0],
+            "all_urls":  urls,
             "thumb":     thumb,
             "bbox":      None,
         })
 
+        if len(items) >= max_results:
+            break
+
+    # Diagnóstico: inclui info na resposta mesmo que vazia
+    if total_cmr == 0:
+        raise ValueError(
+            f"Nenhuma cena encontrada no CMR para {mission} "
+            f"entre {start_date} e {end_date} na AOI definida.\n"
+            f"Verifique a AOI e o período selecionado."
+        )
+
     return items
+
 
 
 def download(products: list[dict], cfg: dict, log_fn=print) -> None:
