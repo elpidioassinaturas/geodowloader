@@ -1,4 +1,14 @@
 
+## [0.1.019]  2026-03-15  SRTM funcionando
+
+**Commit:** 2d0dc70  |  **Estado:** development
+
+### Validado
+- SRTM 30m: busca e download funcionando via earthaccess + NASA Earthdata
+- earthaccess.search_data() encontra granules via CMR (ignora URLs hardcoded)
+- earthaccess.get_requests_https_session() autentica o download automaticamente
+- Credenciais Earthdata (username/password) reutilizadas do config.yaml
+
 ## [0.1.018]  2026-03-15  srtm.py: extrai URLs reais no search() via data_links(), usa get_requests_https_session() no download()
 
 **Commit:** 2ec7d5b  |  **Estado:** development
@@ -111,6 +121,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
