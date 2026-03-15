@@ -122,12 +122,10 @@ def search(params: dict) -> list[dict]:
         cloud = it.properties.get("eo:cloud_cover", None)
         date  = it.datetime.strftime("%Y-%m-%d") if it.datetime else start_date
 
-        # Thumbnail
-        thumb = None
-        if "thumbnail" in it.assets:
-            thumb = it.assets["thumbnail"].href
-        elif "reduced_resolution_browse" in it.assets:
-            thumb = it.assets["reduced_resolution_browse"].href
+        # Thumbnail requer USGS ERS auth (diferente do NASA Earthdata)
+        # Usa URL publica do visualizador LandsatLook para preview
+        viewer_url = f"https://landsatlook.usgs.gov/stac-browser/collection02/./{it.id}"
+        thumb = viewer_url   # abre no visualizador, nao carrega img direto
 
         # URLs de download das bandas (HTTPS direto)
         all_urls = []
