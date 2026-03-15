@@ -163,14 +163,12 @@ shapely
 
 ### 🔴 Alta Prioridade
 
-- [ ] **Versão portátil (PyInstaller)**
-  - [ ] Fase 1: Adaptar `app.py` com `BASE_DIR` dinâmico (modo .exe vs modo dev)
-  - [ ] Fase 2: Criar `geodownloader.spec` (PyInstaller `--onedir`)
-  - [ ] Fase 3: Criar `BUILD.bat` que gera o ZIP distribúivel
-  - [ ] Fase 4: Resolver dependências problemáticas (earthaccess, GDAL, fiona)
-  - [ ] Fase 5: Testar em VM limpa sem Python instalado
-  - [ ] Fase 6: Publicar release no GitHub com `.zip`
-  - *Detalhes completos em [`plano_versao_portatil.md`](plano_versao_portatil.md)*
+- [x] **Versão portátil (Python Embeddable + auto-install)**
+  - [x] app.py com BASE_DIR dinâmico + sys.path correto para Python Embeddable
+  - [x] GeoDownloader.bat sem erro "foi inesperado" (setlocal + goto)
+  - [x] INSTALAR.bat: descompacta ZIP, restaura config.yaml, cria atalho Desktop
+  - [x] BUILD_PORTABLE.bat: baixa Python 3.12, gera ZIP + copia INSTALAR.bat para dist/
+  - [x] Testado e funcionando em C:\geoDownloader
 
 ### 🟡 Média Prioridade — Datasets Pendentes
 
