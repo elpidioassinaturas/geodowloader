@@ -25,7 +25,7 @@ echo ZIP encontrado: %ZIP_FILE%
 echo.
 
 ::  Destino da instalacao 
-set "DEFAULT_DEST=%USERPROFILE%\GeoDownloader"
+set "DEFAULT_DEST=C:\geodownloader"
 set /p "DEST=Pasta de instalacao [%DEFAULT_DEST%]: "
 if "%DEST%"=="" set "DEST=%DEFAULT_DEST%"
 
