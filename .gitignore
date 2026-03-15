@@ -21,6 +21,9 @@ ENV/
 .env
 .env.*
 
+# Config com credenciais (nunca versionar!)
+config.yaml
+
 # IDE / Editor
 .vscode/
 .idea/
