@@ -1,4 +1,11 @@
 
+## [0.1.031]  2026-03-15
+**Commit:** d51188f  |  **Estado:** development
+### Corrigido
+- INICIAR.bat: sempre executa pip install (--quiet) em vez de checar so flask
+- Libera porta 5000 antes de iniciar (mata processo anterior se houver)
+
+
 ## [0.1.030]  2026-03-15
 **Commit:** 4b01ed9  |  **Estado:** development
 ### Corrigido
@@ -142,6 +149,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
