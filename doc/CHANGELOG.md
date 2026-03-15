@@ -1,4 +1,13 @@
 
+## [0.1.038]  2026-03-15  Landsat validado
+**Commit:** a3d8d11  |  **Estado:** development
+### Validado
+- Landsat 8/9: busca via USGS LandsatLook STAC funcionando
+- Filtro cloud cover eo:cloud_cover STAC nativo funcionando
+- Thumbnail + link visualizador 🔍 funcionando
+- Parser WRS robusto para multiplos formatos de scene ID
+
+
 ## [0.1.033]  2026-03-15
 **Commit:** 983537f
 ### Corrigido
@@ -167,6 +176,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 
