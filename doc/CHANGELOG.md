@@ -1,4 +1,14 @@
 
+## [0.1.018]  2026-03-15  srtm.py: extrai URLs reais no search() via data_links(), usa get_requests_https_session() no download()
+
+**Commit:** 2ec7d5b  |  **Estado:** development
+
+### Corrigido
+- srtm.py: objetos DataGranule nao sobrevivem serialização JSON frontend->backend
+  Solucao: search() extrai URLs HTTPS reais via r.data_links(access='indirect')
+- download() usa earthaccess.get_requests_https_session() para auth transparente
+- app.py: injeta credenciais earthdata nos params antes do search()
+
 ## [0.1.017]  2026-03-15  srtm.py: migra para earthaccess (abordagem oficial NASA LP DAAC)  URL antiga desativada
 
 **Commit:** 6bcf593  |  **Estado:** development
@@ -101,6 +111,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Skill de versionamento customizado (`versioning`)
 - Arquivos `VERSION` e `APP_STATE`
 - `doc/CHANGELOG.md`
+
 
 
 

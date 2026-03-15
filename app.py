@@ -128,6 +128,12 @@ def api_search(source: str):
     # Injeta configurações globais de download
     params.setdefault("download_dir", cfg.get("download", {}).get("directory", "downloads"))
 
+    # Injeta credenciais Earthdata nos params (necessário para earthaccess no search)
+    ed = cfg.get("earthdata", {})
+    if ed.get("username"):
+        params.setdefault("earthdata_user", ed["username"])
+        params.setdefault("earthdata_pass", ed["password"])
+
     try:
         results = mod.search(params)
         return jsonify({"results": results, "total": len(results), "source": source})
