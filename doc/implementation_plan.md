@@ -178,6 +178,30 @@ shapely
 - [ ] **ERA5** — busca e download via CDS API (`cdsapi`)
 - [ ] **CHIRPS** — download de precipitação via HTTP público (UCSB)
 
+### 🟡 Média Prioridade — Novas Funcionalidades (inspirado em SCP/EODAG)
+
+- [ ] **Seleção de bandas** — checkbox para escolher quais bandas baixar (ex: só B4+B5 para NDVI)
+  - Landsat: coastal, blue, green, red, nir08, swir16, swir22, thermal, pan
+  - Sentinel-2: B02, B03, B04, B08, B11, B12, SCL
+  - Impacto: reduz tamanho de download em até 80%
+
+- [ ] **Recorte pela AOI pós-download** — clip automático do GeoTIFF pela AOI desenhada
+  - Usa `rasterio.mask` com o polígono da AOI
+  - Opção on/off na interface ("Recortar pela AOI: ✅")
+  - Salvar como `{cena}_clip.tif` ao lado do original
+
+- [ ] **Fila de downloads com progresso**
+  - Tabela de resultados: checkbox de seleção múltipla
+  - Botão "Baixar selecionados" enfileira e baixa um a um
+  - Barra de progresso por arquivo (bytes / total via Content-Length)
+  - Limite: 1 download simultâneo (seguro para todos os repositórios)
+  - Status visual: ⏳ Aguardando / 🔄 Baixando X% / ✅ Concluído / ❌ Erro
+
+- [ ] **Verificar arquivo antes de baixar**
+  - Checa se o arquivo já existe na pasta de destino
+  - Se existir: pop-up "Arquivo já baixado. Sobrescrever? [Sim / Não / Todos]"
+  - Se Não: pula e vai para o próximo na fila
+
 ### 🟡 Média Prioridade — Melhorias Landsat
 
 - [ ] Testar download real de cenas Landsat (auth USGS via earthaccess)
