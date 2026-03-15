@@ -8,9 +8,24 @@ Versão: 0.1.001 | Estado: development
 import json
 import os
 import queue
+import sys
 import threading
 from datetime import datetime
 from pathlib import Path
+
+# ── Modo portátil: detecta BASE_DIR e injeta pkgs/ no sys.path ───────────────────────
+def _get_base_dir() -> Path:
+    """Retorna o dirétorio base: ao lado do exe (portátil) ou do script (dev)."""
+    if getattr(sys, 'frozen', False):          # PyInstaller
+        return Path(sys.executable).parent
+    return Path(__file__).resolve().parent
+
+BASE_DIR = _get_base_dir()
+
+# Injeta pkgs/ (modo portátil com Python Embeddable)
+_pkgs = BASE_DIR / "pkgs"
+if _pkgs.exists() and str(_pkgs) not in sys.path:
+    sys.path.insert(0, str(_pkgs))
 
 import yaml
 from flask import Flask, Response, jsonify, render_template, request
@@ -36,14 +51,15 @@ def _load_adapter(name: str):
             _ADAPTERS[name] = None
     return _ADAPTERS[name]
 
-# ── App Flask ─────────────────────────────────────────────────────────────────
-app = Flask(__name__)
+# ── App Flask ─────────────────────────────────────────────────────
+app = Flask(__name__,
+            template_folder=str(BASE_DIR / "templates"))
 
-CONFIG_PATH = Path("config.yaml")
-VERSION     = (Path("VERSION").read_text(encoding="utf-8").strip()
-               if Path("VERSION").exists() else "0.1.001")
-APP_STATE   = (Path("APP_STATE").read_text(encoding="utf-8").strip()
-               if Path("APP_STATE").exists() else "development")
+CONFIG_PATH = BASE_DIR / "config.yaml"
+VERSION     = ((BASE_DIR / "VERSION").read_text(encoding="utf-8").strip()
+               if (BASE_DIR / "VERSION").exists() else "0.1.001")
+APP_STATE   = ((BASE_DIR / "APP_STATE").read_text(encoding="utf-8").strip()
+               if (BASE_DIR / "APP_STATE").exists() else "development")
 
 LOG_QUEUE:      queue.Queue = queue.Queue()
 DOWNLOAD_STATUS = {"running": False, "done": 0, "total": 0, "error": None, "source": ""}
