@@ -78,16 +78,21 @@ def download(products: list[dict], cfg: dict, log_fn=print) -> None:
         raise RuntimeError("cdsapi não instalado. Execute: pip install cdsapi")
 
     cds_cfg = cfg.get("cds", {})
-    uid     = cds_cfg.get("uid", "")
-    api_key = cds_cfg.get("api_key", "")
+    cds_url = cds_cfg.get("url", "https://cds.climate.copernicus.eu/api")
+    cds_key = cds_cfg.get("key", "") or cds_cfg.get("api_key", "")  # compatibilidade
 
-    out_dir = Path(cfg.get("download", {}).get("directory", "downloads/era5"))
+    if not cds_key:
+        raise RuntimeError(
+            "Chave CDS não configurada. "
+            "Acesse ⚙️ Configurações e preencha a Key do CDS API."
+        )
+
+    out_dir = Path(cfg.get("download", {}).get("directory", "downloads")) / "era5"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Configura credenciais via env (cdsapi lê de ~/.cdsapirc ou env vars)
-    if uid and api_key:
-        os.environ["CDSAPI_URL"] = "https://cds.climate.copernicus.eu/api"
-        os.environ["CDSAPI_KEY"] = api_key
+    # Configura credenciais via env vars (cdsapi lê CDSAPI_URL + CDSAPI_KEY)
+    os.environ["CDSAPI_URL"] = cds_url
+    os.environ["CDSAPI_KEY"] = cds_key
 
     client = cdsapi.Client(quiet=True)
 

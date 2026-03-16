@@ -10,9 +10,10 @@ copernicus:
 
 # ─── CDS API (ERA5) ────────────────────────────────────────────────────────────
 # Crie conta em: https://cds.climate.copernicus.eu
+# Após login: clique no seu perfil → API key
 cds:
-  uid:     ""
-  api_key: ""
+  url: "https://cds.climate.copernicus.eu/api"
+  key: ""
 
 # ─── Download ──────────────────────────────────────────────────────────────────
 download:

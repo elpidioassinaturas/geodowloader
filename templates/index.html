@@ -695,15 +695,16 @@
         🌡️ CDS API (ERA5)
         <span class="cred-status nok" id="status-cds">⚠ não configurado</span>
       </div>
-      <div class="cred-note">Usado por: ERA5 · CHIRPS (ERA5 requer conta)
+      <div class="cred-note">Usado por: ERA5
         <br><a href="https://cds.climate.copernicus.eu" target="_blank" style="color:var(--accent)">Criar conta gratuita →</a>
+        <br><small style="color:var(--muted)">Após login: perfil → API key</small>
       </div>
       <div class="field">
-        <label>UID</label>
-        <input id="cds-uid" type="text" placeholder="12345"/>
+        <label>URL</label>
+        <input id="cds-url" type="text" placeholder="https://cds.climate.copernicus.eu/api"/>
       </div>
       <div class="field">
-        <label>API Key</label>
+        <label>Key</label>
         <div class="input-wrap">
           <input id="cds-key" type="password" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
           <button class="eye-btn" onclick="togglePass('cds-key')">👁</button>
@@ -1347,8 +1348,8 @@ async function loadConfig() {
   document.getElementById('ed-pass').value  = (d.earthdata  || {}).password || '';
   document.getElementById('cop-email').value = (d.copernicus || {}).email    || '';
   document.getElementById('cop-pass').value  = (d.copernicus || {}).password || '';
-  document.getElementById('cds-uid').value  = (d.cds        || {}).uid      || '';
-  document.getElementById('cds-key').value  = (d.cds        || {}).api_key  || '';
+  document.getElementById('cds-url').value  = (d.cds || {}).url || 'https://cds.climate.copernicus.eu/api';
+  document.getElementById('cds-key').value  = (d.cds || {}).key || '';
   document.getElementById('dl-dir').value   = (d.download   || {}).directory || 'downloads';
   updateCredStatus();
 }
@@ -1357,7 +1358,7 @@ async function saveConfig() {
   const body = {
     earthdata:  { username: document.getElementById('ed-user').value,  password: document.getElementById('ed-pass').value   },
     copernicus: { email:    document.getElementById('cop-email').value, password: document.getElementById('cop-pass').value  },
-    cds:        { uid:      document.getElementById('cds-uid').value,  api_key:  document.getElementById('cds-key').value   },
+    cds:        { url: document.getElementById('cds-url').value, key: document.getElementById('cds-key').value },
     download:   { directory: document.getElementById('dl-dir').value, processes: 2 },
   };
   const res = await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
@@ -1373,7 +1374,7 @@ function updateCredStatus() {
   };
   check('status-earthdata',  !!(document.getElementById('ed-user').value && document.getElementById('ed-pass').value));
   check('status-copernicus', !!(document.getElementById('cop-email').value && document.getElementById('cop-pass').value));
-  check('status-cds',        !!(document.getElementById('cds-uid').value && document.getElementById('cds-key').value));
+  check('status-cds', !!(document.getElementById('cds-key').value));
 }
 
 function togglePass(id) {
