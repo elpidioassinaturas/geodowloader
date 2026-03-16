@@ -62,7 +62,7 @@ def _tiles_for_bbox(minlon, minlat, maxlon, maxlat) -> list[tuple[int, int]]:
 
 # ── search ────────────────────────────────────────────────────────────────────
 def search(params: dict) -> list[dict]:
-    wkt        = params.get("wkt", "")
+    wkt        = (params.get("aoi_wkt") or params.get("wkt") or "").strip()
     resolution = params.get("resolution", "GLO-30")
 
     if resolution not in _BASE:
