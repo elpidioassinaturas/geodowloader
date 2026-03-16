@@ -935,7 +935,10 @@ function renderResults(results) {
 function clearResults() {
   searchResults = [];
   document.getElementById('results-card').style.display = 'none';
-  document.getElementById('progress-card').style.display = 'none';
+  // Nao esconde progress-card enquanto download estiver ativo
+  if (!isDownloading) {
+    document.getElementById('progress-card').style.display = 'none';
+  }
   document.getElementById('tb-results').innerHTML = '';
 }
 
@@ -949,9 +952,17 @@ function getSelected() {
 }
 
 // ── Download ───────────────────────────────────────────────────────────────────
+let isDownloading = false;
+
 async function doDownload() {
   const selected = getSelected();
   if (!selected.length) { showToast('Selecione pelo menos um produto', 'err'); return; }
+  if (isDownloading) { showToast('Download já em andamento', 'err'); return; }
+
+  isDownloading = true;
+  document.getElementById('btn-download').disabled = true;
+  document.getElementById('btn-download').textContent = '⏳ Baixando...';
+  document.getElementById('btn-search').disabled = true;
 
   const pc = document.getElementById('progress-card');
   pc.style.display = 'block';
@@ -971,11 +982,26 @@ async function doDownload() {
   let done = 0, total = data.total;
   es.onmessage = e => {
     const { msg } = JSON.parse(e.data);
-    if (msg === '__DONE__') { es.close(); document.getElementById('dl-status-text').textContent = '✅ Concluído'; return; }
+    if (msg === '__DONE__') {
+      es.close();
+      isDownloading = false;
+      document.getElementById('btn-download').disabled = false;
+      document.getElementById('btn-download').textContent = '⬇️ Baixar selecionados';
+      document.getElementById('btn-search').disabled = false;
+      document.getElementById('dl-status-text').textContent = '✅ Concluído';
+      return;
+    }
     if (msg === '__PING__') return;
     appendLog(msg);
     if (msg.startsWith('  ✓')) { done++; document.getElementById('progress-bar').style.width = `${(done/total)*100}%`; }
     document.getElementById('dl-status-text').textContent = `${done} / ${total}`;
+  };
+  es.onerror = () => {
+    es.close();
+    isDownloading = false;
+    document.getElementById('btn-download').disabled = false;
+    document.getElementById('btn-download').textContent = '⬇️ Baixar selecionados';
+    document.getElementById('btn-search').disabled = false;
   };
 }
 
