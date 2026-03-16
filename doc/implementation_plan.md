@@ -174,7 +174,7 @@ shapely
 
 - [ ] **Sentinel-1** — busca e download via Copernicus CDSE
 - [ ] **Sentinel-2** — busca e download via Copernicus CDSE (thumbnail público)
-- [ ] **Copernicus DEM** — download GLO-30/GLO-90 via AWS S3 (sem auth)
+- [x] **Copernicus DEM** — download GLO-30/GLO-90 via AWS S3 (sem auth) ✅
 - [ ] **ERA5** — busca e download via CDS API (`cdsapi`)
 - [ ] **CHIRPS** — download de precipitação via HTTP público (UCSB)
 
