@@ -9,6 +9,8 @@ Resolução: 0.05° (~5.5km) | Cobertura: 50°S-50°N | Período: 1981-presente
 URL: https://data.chc.ucsb.edu/products/CHIRPS-2.0/
 """
 from __future__ import annotations
+import os
+import time
 from pathlib import Path
 import requests
 
@@ -31,20 +33,30 @@ def search(params: dict) -> list[dict]:
     start_y, start_m = map(int, start.split("-"))
     end_y,   end_m   = map(int, end.split("-"))
 
+    sess  = requests.Session()
     items = []
-    y, m = start_y, start_m
+    y, m  = start_y, start_m
     while (y, m) <= (end_y, end_m):
         filename = f"chirps-v2.0.{y}.{m:02d}.tif.gz"
         url = f"{_BASE_URL}/global_monthly/tifs/{filename}"
+
+        # Tamanho real via HEAD (rapido, sem baixar)
+        size_mb = 0.0
+        try:
+            r = sess.head(url, timeout=8, allow_redirects=True)
+            if r.status_code == 200:
+                size_mb = round(int(r.headers.get("Content-Length", 0)) / (1024 * 1024), 1)
+        except Exception:
+            pass
+
         items.append({
             "name":    filename.replace(".tif.gz", ""),
             "product": f"CHIRPS {res}",
             "date":    f"{y}-{m:02d}",
-            "size_mb": 30.0,  # aproximado
+            "size_mb": size_mb or 14.0,  # estimativa se HEAD falhar
             "url":     url,
             "file":    filename,
             "thumb":   None,
-            "bbox":    None,
         })
         m += 1
         if m > 12:
@@ -57,21 +69,35 @@ def download(products: list[dict], cfg: dict, log_fn=print) -> None:
     """
     Baixa arquivos CHIRPS (sem autenticação).
     """
-    out_dir = Path(cfg.get("download", {}).get("directory", "downloads/chirps"))
+    out_dir = Path(cfg.get("download", {}).get("directory", "downloads")) / "chirps"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     log_fn(f"Iniciando download de {len(products)} arquivo(s) CHIRPS...")
+    sess = requests.Session()
     for i, prod in enumerate(products, 1):
         filename = prod.get("file", prod.get("name", f"chirps_{i}.tif.gz"))
         url      = prod.get("url", "")
+        out_path = out_dir / filename
+
+        if out_path.exists():
+            log_fn(f"  ↷ Já existe: {filename}")
+            log_fn(f"  ✓ {filename}")
+            continue
+
         log_fn(f"[{i}/{len(products)}] Baixando: {filename}")
+        tmp = out_path.with_suffix(".tmp")
         try:
-            out_path = out_dir / filename
-            with requests.get(url, stream=True, timeout=120) as r:
+            with sess.get(url, stream=True, timeout=120) as r:
                 r.raise_for_status()
-                with open(out_path, "wb") as f:
+                downloaded = 0
+                with open(tmp, "wb") as f:
                     for chunk in r.iter_content(chunk_size=1024 * 1024):
                         f.write(chunk)
-            log_fn(f"  ✓ Concluído: {filename}")
+                        downloaded += len(chunk)
+            os.replace(tmp, out_path)
+            log_fn(f"  ✓ {filename} ({round(downloaded/1e6, 1)} MB)")
         except Exception as e:
             log_fn(f"  ✗ Erro em {filename}: {e}")
+            if tmp.exists():
+                tmp.unlink(missing_ok=True)
+        time.sleep(0.2)
