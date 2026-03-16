@@ -322,6 +322,23 @@ def api_upload_aoi():
         return jsonify(result), 400
     return jsonify(result)
 
+# ── Route — Abrir pasta de downloads ──────────────────────────────────────────
+@app.route("/api/open-folder", methods=["POST"])
+def api_open_folder():
+    import subprocess
+    cfg = load_config()
+    folder = cfg.get("download", {}).get("directory", "downloads")
+    folder_path = BASE_DIR / folder
+    folder_path.mkdir(parents=True, exist_ok=True)
+    try:
+        if os.name == "nt":
+            subprocess.Popen(["explorer", str(folder_path)])
+        else:
+            subprocess.Popen(["xdg-open", str(folder_path)])
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ── Main ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import webbrowser
